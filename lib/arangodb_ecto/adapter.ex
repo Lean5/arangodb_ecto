@@ -24,8 +24,8 @@ defmodule ArangoDB.Ecto.Adapter do
     Logger.debug(aql)
     cursor = make_cursor(aql, vars)
     endpoint = Utils.get_endpoint(repo)
-    
-    Arangoex.Cursor.cursor_create(endpoint, cursor)
+
+    Arango.Cursor.cursor_create(endpoint, cursor)
     |> process_result(& &1, endpoint)
     |> elem(1)
   end
@@ -101,7 +101,7 @@ defmodule ArangoDB.Ecto.Adapter do
     endpoint = Utils.get_endpoint(repo, prefix)
 
     endpoint
-    |> Arangoex.Cursor.cursor_create(cursor)
+    |> Arango.Cursor.cursor_create(cursor)
     |> process_result(mapper, endpoint)
   end
 
@@ -130,7 +130,7 @@ defmodule ArangoDB.Ecto.Adapter do
     end)
 
     Utils.get_endpoint(repo, prefix)
-    |> Arangoex.Document.create(%Arangoex.Collection{name: collection}, docs, opts)
+    |> Arango.Document.create(%Arango.Collection{name: collection}, docs, opts)
     |> handle_insert_result(returning)
   end
 
@@ -145,7 +145,7 @@ defmodule ArangoDB.Ecto.Adapter do
 
     # TODO - apply Arango specific options
     Utils.get_endpoint(repo, prefix)
-    |> Arangoex.Document.create(%Arangoex.Collection{name: collection}, document, [])
+    |> Arango.Document.create(%Arango.Collection{name: collection}, document, [])
     |> process_single_document_result(returning)
   end
 
@@ -157,7 +157,7 @@ defmodule ArangoDB.Ecto.Adapter do
     Logger.debug(fn -> ["Updating document ", inspect(old), " to: ", inspect(document)] end)
     # TODO - apply Arango specific options
     Utils.get_endpoint(repo, prefix)
-    |> Arangoex.Document.update(old, document, [])
+    |> Arango.Document.update(old, document, [])
     |> process_single_document_result(returning)
   end
 
@@ -172,7 +172,7 @@ defmodule ArangoDB.Ecto.Adapter do
     doc = %{_key: key, _id: "#{collection}/#{key}"}
     # TODO - apply Arango specific options
     Utils.get_endpoint(repo, prefix)
-    |> Arangoex.Document.delete(doc)
+    |> Arango.Document.delete(doc)
     |> case do
       {:ok, _} -> {:ok, []}
       {:error, err} -> raise_error(err)
@@ -206,7 +206,7 @@ defmodule ArangoDB.Ecto.Adapter do
   end
 
   defp process_result({:ok, %{"hasMore" => true, "result" => docs, "id" => id}}, mapper, endpoint) do
-    Arangoex.Cursor.cursor_next(endpoint, id)
+    Arango.Cursor.cursor_next(endpoint, id)
     |> process_cursor_result(mapper, endpoint, [docs])
   end
 
@@ -220,7 +220,7 @@ defmodule ArangoDB.Ecto.Adapter do
          endpoint,
          nested_docs
        ) do
-    Arangoex.Cursor.cursor_next(endpoint, id)
+    Arango.Cursor.cursor_next(endpoint, id)
     |> process_cursor_result(mapper, endpoint, [docs | nested_docs])
   end
 
@@ -300,7 +300,7 @@ defmodule ArangoDB.Ecto.Adapter do
     |> elem(0)
   end
 
-  defp make_cursor(aql, []), do: %Arangoex.Cursor.Cursor{query: aql}
+  defp make_cursor(aql, []), do: %Arango.Cursor.Cursor{query: aql}
 
   defp make_cursor(aql, params) do
     vars =
@@ -308,7 +308,7 @@ defmodule ArangoDB.Ecto.Adapter do
       |> Enum.with_index(1)
       |> Enum.map(fn {value, idx} -> {Integer.to_string(idx), value} end)
 
-    %Arangoex.Cursor.Cursor{query: aql, bind_vars: vars}
+    %Arango.Cursor.Cursor{query: aql, bind_vars: vars}
   end
 
   defp load_date(d) do

@@ -65,12 +65,12 @@ defmodule ArangoDB.Ecto.Migration do
         nil
       end
 
-    Arangoex.Collection.create(endpoint, %Arangoex.Collection{name: name, type: collection_type, keyOptions: %{type: key_type}})
+    Arango.Collection.create(endpoint, %Arango.Collection{name: name, type: collection_type, keyOptions: %{type: key_type}})
   end
 
   defp execute(endpoint, {cmd, %Ecto.Migration.Table{name: name}}, _opts)
        when cmd in [:drop, :drop_if_exists] do
-    Arangoex.Collection.drop(endpoint, %Arangoex.Collection{name: name})
+    Arango.Collection.drop(endpoint, %Arango.Collection{name: name})
   end
 
   defp execute(
@@ -80,7 +80,7 @@ defmodule ArangoDB.Ecto.Migration do
        )
        when cmd in [:create, :create_if_not_exists] do
     body = make_index(index)
-    Arangoex.Index.create_general(endpoint, collection, Map.put(body, :fields, fields))
+    Arango.Index.create_general(endpoint, collection, Map.put(body, :fields, fields))
   end
 
   defp execute(
@@ -97,12 +97,12 @@ defmodule ArangoDB.Ecto.Migration do
       |> MapSet.new()
 
     {:ok, %{"error" => false, "indexes" => indexes}} =
-      Arangoex.Index.indexes(endpoint, collection)
+      Arango.Index.indexes(endpoint, collection)
 
     matching_index = Enum.filter(indexes, &MapSet.subset?(body, MapSet.new(&1)))
 
     case {cmd, matching_index} do
-      {_, [index]} -> Arangoex.Index.delete(endpoint, index["id"])
+      {_, [index]} -> Arango.Index.delete(endpoint, index["id"])
       {:drop_if_exists, []} -> :ok
       {:drop, []} -> raise "No index found matching #{inspect(index)}"
     end

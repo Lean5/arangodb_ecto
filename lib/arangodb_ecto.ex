@@ -11,7 +11,7 @@ defmodule ArangoDB.Ecto do
   def truncate(repo, coll) do
     result =
       Utils.get_endpoint(repo)
-      |> Arangoex.Collection.truncate(%Arangoex.Collection{name: coll})
+      |> Arango.Collection.truncate(%Arango.Collection{name: coll})
 
     case result do
       {:ok, _} -> :ok
